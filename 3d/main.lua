@@ -7,8 +7,7 @@ function love.load()
 end
 
 function love.update(dt) --update key or mouse presses
-	if love.mouse.isDown("l") or
-       love.mouse.isDown("r") and
+	if love.mouse.isDown(1, 2) and
        edit == 1 then
 		selection[2].x = math.floor(love.mouse.getX()/sr) + 1 + camx
 		selection[2].y = math.floor(love.mouse.getY()/sr) + 1 + camy
@@ -81,12 +80,15 @@ function love.draw()
 	if view == 1 then
 		for y = camy, camy+15 do
             for z = 0, sz do
-                for x = camx, camx+15 do --draw every block from world[][][] array
-                    if world[x][y][z] == 1 then --draw blocks of type 1
+                -- draw every block from world[][][] array
+                for x = camx, camx+15 do
+                    -- draw blocks of type 1
+                    if world[x][y][z] == 1 then
                         drawBlock(x, y, z)
+                        -- draw shadows around elevated blocks
                         if getMaxZ(x, y) > 0 and
                            x > 1 and x < sx and
-                           y > 0 and y < sy then --draw shadows around elevated blocks
+                           y > 0 and y < sy then
                             love.graphics.setColor(40, 40, 40, 145)
                             if world[x-1][y][z] == nil then
                                 love.graphics.line(
@@ -111,10 +113,11 @@ function love.draw()
                             end
                         end
                     end
+                    -- draw character
                     if p.y == y and
                        (p.z == z or
                         p.z == 0) and
-                       p.x == x then --draw character
+                       p.x == x then
                         love.graphics.setColor(20, 20, 110, 125)
                         love.graphics.rectangle(
                             "fill",
@@ -131,7 +134,7 @@ function love.draw()
                 end
             end
         end
-        --draw character again (fake tranparancies)
+        -- draw character again (fake tranparancies)
 		love.graphics.setColor(20, 20, 110, 35)
 		love.graphics.rectangle(
             "fill",
@@ -144,7 +147,8 @@ function love.draw()
             (p.x-camx)*sr - sr/3,
             (p.y-camy)*sr - (p.z+1)*sr/2,
             -sr/3, -sr)
-		if edit == 1 then --draw green cursor
+		if edit == 1 then
+            -- draw green cursor
 			x = math.floor(love.mouse.getX()/sr)+1
             y = math.floor(love.mouse.getY()/sr)+1
 			z = getMaxZ(x+camx, y+camy)
@@ -154,7 +158,8 @@ function love.draw()
                 x*sr, y*sr-z*sr/2,
                 -sr, -sr)
 		end
-		if selection[1].x ~= nil then --draw red selection box
+		if selection[1].x ~= nil then
+            -- draw red selection box
 			love.graphics.setColor(255, 0, 0, 220)
 			if selection[1].x <= selection[2].x then
                 smallx = 1
@@ -191,29 +196,32 @@ function love.draw()
                 end
             end
         end
-        --draw character base (color)
+        -- draw character base (color)
 		love.graphics.setColor(20, 20, 110, 125)
-        --draw character base (rectangle)
+        -- draw character base (rectangle)
 		love.graphics.rectangle(
             "fill",
             (p.x-camx)*sr,
             (p.y-camy)*sr,
             -sr, -sr)
-		love.graphics.setColor(30, 30, 190) --draw character
-        --draw character (rectangle)
+        -- draw character
+		love.graphics.setColor(30, 30, 190)
+        -- draw character (rectangle)
 		love.graphics.rectangle(
             "fill",
             (p.x-camx)*sr-sr/3,
             (p.y-camy)*sr-sr/3,
             -sr/3, -sr/3)
-		if edit == 1 then --draw green cursor
+		if edit == 1 then
+            -- draw green cursor
 			x = math.floor(love.mouse.getX()/sr)+1
             y = math.floor(love.mouse.getY()/sr)+1
 			love.graphics.setColor(40, 80, 40, 150)
 			love.graphics.rectangle("fill", x*sr, y*sr, -sr, -sr)
 		end
 	end
-	if grid == 1 then --draw red grid
+	if grid == 1 then
+        -- draw red grid
 		love.graphics.setColor(255, 0, 0, 100)
 		for y = 1, sy-1 do
             love.graphics.line(0, y*sr, sx*sr, y*sr)
@@ -223,14 +231,21 @@ function love.draw()
         end
 	end
 	love.graphics.setColor(250, 190, 40)
-	--love.graphics.circle("fill", (m.x-camx)*sr, (m.y-camy)*sr, sr/2, 20) --draw monster
+    --draw monster
+	--[[
+    love.graphics.circle(
+        "fill",
+        (m.x-camx)*sr,
+        (m.y-camy)*sr,
+        sr/2, 20)
+    --]]
 end
 
 function love.mousepressed(x, y, k)
 	x = math.floor(x/sr)+1+camx
     y = math.floor(y/sr)+1+camy
-	if (k == "l" or
-        k == "r") and
+	if (k == 1 or
+        k == 2) and
        edit == 1 and
        selection[1].x == nil then
 		selection[1].x = x
@@ -244,9 +259,9 @@ function love.mousepressed(x, y, k)
           getMaxZ(x, y))
 end
 
---modify terrain accordingly to selection release
+-- modify terrain accordingly to selection release
 function love.mousereleased(x, y, k)
-	if k == "l" and
+	if k == 1 and
        edit == 1 and
        selection[1].x ~= nil then
 		if selection[1].x <= selection[2].x then
@@ -272,7 +287,7 @@ function love.mousereleased(x, y, k)
                 end 
             end
         end
-	elseif k == "r" and edit == 1 and
+	elseif k == 2 and edit == 1 and
            selection[1].x ~= nil then
 		if selection[1].x <= selection[2].x then
             smallx = 1
@@ -302,9 +317,9 @@ function love.mousereleased(x, y, k)
 end
 
 function love.keypressed(k)
-	if k == "g"     then grid = 1-grid end
-	if k == "e"     then edit = 1-edit end
-	if k == "v"     then view = 1-view end
+	if k == "g" then grid = 1-grid end
+	if k == "e" then edit = 1-edit end
+	if k == "v" then view = 1-view end
 	if k == "left" and
        p.x-2 >= camx and
        math.abs(p.z - getMaxZ(p.x-1, p.y)) <= 1 then
