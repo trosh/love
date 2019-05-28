@@ -61,7 +61,7 @@ function love.update(dt)
 		   s[i].x == s[1].x and
 		   s[i].y == s[1].y then
 			test = 0
-			love.timer.sleep(300)
+			love.timer.sleep(1)
 			loader()
 		end
 	end
