@@ -37,7 +37,7 @@ function love.load()
 	width = 10
 	height = 20
 	bs = 20
-	love.graphics.setMode(width*bs, height*bs)
+	love.window.setMode(width*bs, height*bs)
 	
 	timestep = 0.30
 	timer = 0
