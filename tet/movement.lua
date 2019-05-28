@@ -96,3 +96,37 @@ function movepieceright()
 		piece.x = piece.x + 1
 	end
 end
+
+function movepieceharddrop()
+	while true do
+		local contact = false
+		for _, block in ipairs(piece.t) do
+			if block.y + piece.y == height - 1 then
+				contact = true
+				break
+			end
+			for _, hblock in ipairs(heap) do if hblock ~= nil then
+				if block.x + piece.x == hblock.x and
+				   block.y + piece.y == hblock.y - 1 then
+					contact = true
+					break
+				end
+			end end
+			if contact then break end
+		end
+		if contact then
+			for _, block in ipairs(piece.t) do
+				table.insert(heap, {
+						x = block.x + piece.x,
+						y = block.y + piece.y
+					}
+				)
+			end
+			newpiece()
+			checkline()
+			break
+		else
+			piece.y = piece.y + 1
+		end
+	end
+end

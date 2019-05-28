@@ -29,23 +29,28 @@ function newpiece()
 			keydown = false
 			keyleft = false
 			keyright = false
+			keyharddrop = false
 		end
 	end
 end
 
 function love.load()
+	-- Window dimensions
 	width = 10
 	height = 20
 	bs = 20
 	love.window.setMode(width*bs, height*bs)
-	
+	-- Time
 	timestep = 0.30
 	timer = 0
 	keytimestep = 0.05
 	keytimer = 0
 	keypause = 5
-	keydownpause, keyleftpause, keyrightpause = 0, 0, 0
-	
+	keydownpause = 0
+	keyleftpause = 0
+	keyrightpause = 0
+	keyharddroppause = 0
+	-- Tetriminos
 	tetra = {
 		{{x=1, y=1}, {x=1, y=2}, {x=2, y=2}, {x=2, y=1}}, --o
 		{{x=2, y=0}, {x=2, y=1}, {x=1, y=1}, {x=1, y=2}}, --z
@@ -76,6 +81,10 @@ function love.update(dt)
 				if keyrightpause > 0 then keyrightpause = keyrightpause - 1
 				else movepieceright() end
 			end
+			if keyharddrop then
+				if keyharddroppause > 0 then keyharddroppause = keyharddroppause - 1
+				else movepieceharddrop() end
+			end
 		end
 	end
 	timer = timer + dt
@@ -85,18 +94,30 @@ function love.update(dt)
 	end
 end
 
-function love.draw()
+function setGray(g, a)
+	love.graphics.setColor(g, g, g, a)
+end
+
+function love.draw(dt)
+	love.graphics.clear()
+	setGray(0.8)
 	love.graphics.rectangle("line", 0, 0, width * bs, height * bs)
 	for i = 1, #piece.t do
-		love.graphics.rectangle("fill",
+		love.graphics.rectangle("line",
 			(piece.t[i].x + piece.x) * bs,
 			(piece.t[i].y + piece.y) * bs,
 			bs, bs
 		)
 	end
+	setGray(0.7)
+	for i = 1, #heap do
+		love.graphics.rectangle("fill", heap[i].x * bs, heap[i].y * bs, bs, bs)
+	end
+	setGray(0.9)
 	for i = 1, #heap do
 		love.graphics.rectangle("line", heap[i].x * bs, heap[i].y * bs, bs, bs)
 	end
+	love.graphics.print("fps: " .. math.floor(.5 + 1/dt), 0, 0)
 end
 
 function love.keypressed(k)
@@ -112,6 +133,10 @@ function love.keypressed(k)
 		keydown = true
 		keydownpause = keypause
 		movepiecedown()
+	elseif k == "up" then
+		keyharddrop = true
+		keyharddroppause = keypause
+		movepieceharddrop()
 	elseif k == "z" then
 		rotatepiece(false)
 	elseif k == "x" then
@@ -126,6 +151,8 @@ function love.keyreleased(k)
 		keyright = false
 	elseif k == "down" then
 		keydown = false
+	elseif k == "up" then
+		keyharddrop = false
 	end
 end
 
@@ -133,44 +160,31 @@ function love.run()
 	math.randomseed(os.time())
 	math.random() math.random()
 
-	if love.load then love.load(arg) end
+	love.load(arg)
 
 	local dt = 0
 
 	-- Main loop time.
 	while true do
 		-- Process events.
-		if love.event then
-			love.event.pump()
-			for e,a,b,c,d in love.event.poll() do
-				if e == "quit" then
-					if not love.quit or not love.quit() then
-						if love.audio then
-							love.audio.stop()
-						end
-						return
+		love.event.pump()
+		for e,a,b,c,d in love.event.poll() do
+			if e == "quit" then
+				if not love.quit or not love.quit() then
+					if love.audio then
+						love.audio.stop()
 					end
+					return
 				end
-				love.handlers[e](a,b,c,d)
 			end
+			love.handlers[e](a,b,c,d)
 		end
-
 		-- Update dt, as we'll be passing it to update
-		if love.timer then
-			love.timer.step()
-			dt = love.timer.getDelta()
-		end
-
+		love.timer.step()
+		dt = love.timer.getDelta()
 		-- Call update and draw
-		if love.update then love.update(dt) end -- will pass 0 if love.timer is disabled
-		if love.graphics then
-			love.graphics.clear()
-			if love.draw then love.draw() end
-		end
-
-		if love.timer then love.timer.sleep(0.01) end
-		if love.graphics then love.graphics.present() end
-
+		love.update(dt)
+		love.draw(dt)
+		love.graphics.present()
 	end
-
 end
